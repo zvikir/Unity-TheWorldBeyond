@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent "Windows"
 
     environment {
         // Fallback version if automatic detection fails
