@@ -1,5 +1,5 @@
 pipeline {
-    agent "Windows"
+    agent { label 'Windows' }
 
     environment {
         // Fallback version if automatic detection fails
