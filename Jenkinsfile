@@ -15,7 +15,7 @@ pipeline {
         stage('Build Quest APK') {
             steps {
                 bat """
-                    "${env.UNITY_EXE}" -batchmode -quit -projectPath "%WORKSPACE%" -executeMethod BuildFlavors.BuildAndroid64 -logFile build.log
+                    "${env.UNITY_EXE}" -batchmode -quit -activeBuildProfile "Assets/Settings/Build Profiles/Meta Quest.asset" -projectPath "%WORKSPACE%" -executeMethod BuildFlavors.BuildAndroid64 -logFile build.log
                 """
             }
         }

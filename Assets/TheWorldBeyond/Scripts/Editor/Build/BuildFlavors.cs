@@ -42,24 +42,52 @@ public class BuildFlavors
         var friendlyPrint = architecture == AndroidArchitecture.ARMv7 ? "32" : "64";
         var implementation = architecture == AndroidArchitecture.ARM64 ? ScriptingImplementation.IL2CPP : ScriptingImplementation.Mono2x;
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, implementation);
-        var buildOptions = new BuildPlayerOptions
+        
+        var activeProfile = UnityEditor.Build.Profile.BuildProfile.GetActiveBuildProfile();
+        UnityEditor.Build.Reporting.BuildReport error;
+        if (activeProfile != null)
         {
-            locationPathName = string.Format("builds/{0}_{1}.apk", ApkAppName, friendlyPrint),
-            scenes = projectScenes,
-            target = BuildTarget.Android,
-            targetGroup = BuildTargetGroup.Android,
-            options = new BuildOptions()
-        };
-        try
-        {
-            var error = BuildPipeline.BuildPlayer(buildOptions);
-            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, previousAppIdentifier);
-            HandleBuildError.Check(error);
+            UnityEngine.Debug.Log("Building using Active Build Profile: " + activeProfile.name);
+            var profileOptions = new UnityEditor.BuildPlayerWithProfileOptions
+            {
+                buildProfile = activeProfile,
+                locationPathName = string.Format("builds/{0}_{1}.apk", ApkAppName, friendlyPrint),
+                options = BuildOptions.None
+            };
+            try
+            {
+                error = BuildPipeline.BuildPlayer(profileOptions);
+                PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, previousAppIdentifier);
+                HandleBuildError.Check(error);
+            }
+            catch
+            {
+                UnityEngine.Debug.Log("Exception while building with profile: exiting with exit code 2");
+                EditorApplication.Exit(2);
+            }
         }
-        catch
+        else
         {
-            UnityEngine.Debug.Log("Exception while building: exiting with exit code 2");
-            EditorApplication.Exit(2);
+            UnityEngine.Debug.Log("Building using standard Android settings (no active Build Profile found)");
+            var buildOptions = new BuildPlayerOptions
+            {
+                locationPathName = string.Format("builds/{0}_{1}.apk", ApkAppName, friendlyPrint),
+                scenes = projectScenes,
+                target = BuildTarget.Android,
+                targetGroup = BuildTargetGroup.Android,
+                options = new BuildOptions()
+            };
+            try
+            {
+                error = BuildPipeline.BuildPlayer(buildOptions);
+                PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, previousAppIdentifier);
+                HandleBuildError.Check(error);
+            }
+            catch
+            {
+                UnityEngine.Debug.Log("Exception while building: exiting with exit code 2");
+                EditorApplication.Exit(2);
+            }
         }
     }
 
